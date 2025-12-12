@@ -1,39 +1,48 @@
-import pandas as pd
+# -------------------------------------------------------------
+# run_all_models.py
+# Runs QNN + LR + SVM and compares accuracy + inference time
+# Author: Farheen Shaikh
+# -------------------------------------------------------------
+
+import os
+import matplotlib.pyplot as plt
+
 from train_svm_lr import train_logistic_regression, train_svm
 from train_qnn import train_qnn
 
-# ---------------------------
-# 1. Load Dataset
-# ---------------------------
-df = pd.read_excel("transactions.csv")
 
-X = df[['ipi_minutes']].values
-y = df['label'].values
+def main():
+    os.makedirs("result", exist_ok=True)
 
-print("Dataset loaded. Samples:", len(X))
+    # --- Classical ---
+    lr_model, lr_acc, lr_cm, lr_t, _ = train_logistic_regression("transactions.csv")
+    svm_model, svm_acc, svm_cm, svm_t, _ = train_svm("transactions.csv")
 
-# ---------------------------
-# 2. Run Logistic Regression
-# ---------------------------
-print("\nRunning Logistic Regression...")
-lr_model, lr_acc, lr_cm = train_logistic_regression(X, y)
-print("Logistic Regression Accuracy:", lr_acc)
-print("Confusion Matrix:\n", lr_cm)
+    # --- Quantum ---
+    qnn_model, qnn_acc, qnn_cm, qnn_t = train_qnn("transactions.csv")
 
-# ---------------------------
-# 3. Run SVM
-# ---------------------------
-print("\nRunning Support Vector Machine...")
-svm_model, svm_acc, svm_cm = train_svm(X, y)
-print("SVM Accuracy:", svm_acc)
-print("Confusion Matrix:\n", svm_cm)
+    # Print summary
+    print("\n==================== SUMMARY ====================")
+    print(f"LR  Accuracy: {lr_acc:.3f} | Avg inference (sec/pred): {lr_t:.6f}")
+    print(f"SVM Accuracy: {svm_acc:.3f} | Avg inference (sec/pred): {svm_t:.6f}")
+    print(f"QNN Accuracy: {qnn_acc:.3f} | Avg inference (sec/pred): {qnn_t:.6f}")
 
-# ---------------------------
-# 4. Run Quantum Neural Network (QNN)
-# ---------------------------
-print("\nRunning Quantum Neural Network...")
-qnn_model, qnn_acc, qnn_cm = train_qnn(X, y)
-print("QNN Accuracy:", qnn_acc)
-print("Confusion Matrix:\n", qnn_cm)
+    # Speed plot
+    models = ["Logistic Regression", "SVM", "QNN (4-Qubit)"]
+    times = [lr_t, svm_t, qnn_t]
 
-print("\nAll models trained successfully.")
+    plt.figure(figsize=(7, 4))
+    plt.bar(models, times)
+    plt.title("Inference Time Comparison Across Models")
+    plt.ylabel("Inference Time (seconds per prediction)")
+    plt.xticks(rotation=10)
+    plt.tight_layout()
+    plt.savefig("result/inference_time_comparison.png", dpi=300)
+    plt.close()
+
+    print("\nSaved: result/inference_time_comparison.png")
+    print("Saved: result/cm_lr.png, result/cm_svm.png, result/cm_qnn.png")
+
+
+if __name__ == "__main__":
+    main()
