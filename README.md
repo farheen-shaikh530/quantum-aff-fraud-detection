@@ -25,3 +25,9 @@ source venv/bin/activate
 
 # 2. Install dependencies
 pip install -r requirements.txt
+
+## Experimental Findings
+- QNN performance plateaus as qubits increase (4–6)
+- Optimization noise dominates over circuit expressivity
+- Dense angle encoding improves stability but not parity with classical MLP
+- Results align with known limitations of NISQ-era variational circuits
